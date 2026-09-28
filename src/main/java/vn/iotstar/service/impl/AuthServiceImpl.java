@@ -23,12 +23,14 @@ public class AuthServiceImpl implements AuthService {
     @Override
     public UserDTO register(UserDTO userDto, String password) {
         Role role = null;
-        if (userDto.getRoleId() != null) {
-            role = roleRepository.findById(userDto.getRoleId()).orElse(null);
+        if (userDto.getRoleName() != null) {
+            role = roleRepository.findByName(userDto.getRoleName())
+                    .or(() -> roleRepository.findByNameIgnoreCase(userDto.getRoleName()))
+                    .orElse(null);
         }
         if (role == null) {
-            role = roleRepository.findByNameIgnoreCase("USER")
-                    .orElseGet(() -> roleRepository.save(new Role("USER")));
+            role = roleRepository.findByName("ROLE_USER")
+                    .orElseGet(() -> roleRepository.save(new Role("ROLE_USER")));
         }
 
         User user = userMapper.toEntity(userDto);
@@ -37,6 +39,6 @@ public class AuthServiceImpl implements AuthService {
         user.setEnabled(true);
 
         User saved = userRepository.save(user);
-        return userMapper.toDto(saved);
+        return userMapper.toDTO(saved);
     }
 }

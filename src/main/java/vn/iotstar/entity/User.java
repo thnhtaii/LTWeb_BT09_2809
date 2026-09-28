@@ -3,19 +3,22 @@ package vn.iotstar.entity;
 import jakarta.persistence.*;
 import lombok.*;
 import java.io.Serializable;
-import java.time.LocalDateTime;
-import java.util.ArrayList;
-import java.util.List;
 
+@Entity
+@Table(
+    name = "users",
+    uniqueConstraints = {
+        @UniqueConstraint(name = "uk_users_username", columnNames = "username"),
+        @UniqueConstraint(name = "uk_users_email", columnNames = "email")
+    }
+)
 @Getter
 @Setter
-@AllArgsConstructor
 @NoArgsConstructor
+@AllArgsConstructor
 @Builder
-@ToString(exclude = {"role", "products"})
-@EqualsAndHashCode(exclude = {"role", "products"})
-@Entity
-@Table(name = "users")
+@ToString(exclude = "role")
+@EqualsAndHashCode(exclude = "role")
 public class User implements Serializable {
     private static final long serialVersionUID = 1L;
 
@@ -23,28 +26,26 @@ public class User implements Serializable {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @Column(nullable = false, unique = true, length = 120)
+    @Column(nullable = false, unique = true, length = 50)
+    private String username;
+
+    @Column(nullable = false, unique = true, length = 150)
     private String email;
 
-    @Column(nullable = false, length = 150)
+    @Column(nullable = false)
     private String password;
 
-    @Column(nullable = false, length = 120, columnDefinition = "nvarchar(120)")
+    @Column(name = "full_name", length = 150, columnDefinition = "nvarchar(200)")
     private String fullName;
 
-    @Builder.Default
+    @Column(length = 500)
+    private String images;
+
     @Column(nullable = false)
+    @Builder.Default
     private boolean enabled = true;
 
-    @Builder.Default
-    @Column(nullable = false)
-    private LocalDateTime createdAt = LocalDateTime.now();
-
-    @ManyToOne(fetch = FetchType.LAZY)
+    @ManyToOne(fetch = FetchType.EAGER)
     @JoinColumn(name = "role_id", nullable = false)
     private Role role;
-
-    @Builder.Default
-    @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, orphanRemoval = true)
-    private List<Product> products = new ArrayList<>();
 }

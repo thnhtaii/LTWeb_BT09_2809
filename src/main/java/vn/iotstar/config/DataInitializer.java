@@ -1,6 +1,5 @@
 package vn.iotstar.config;
 
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -14,35 +13,52 @@ import vn.iotstar.repository.UserRepository;
 public class DataInitializer {
 
     @Bean
-    CommandLineRunner initData(RoleRepository roles, UserRepository users,
-                               PasswordEncoder encoder,
-                               @Value("${ADMIN_EMAIL:thanhtai@hcmute.edu.vn}") String adminEmail,
-                               @Value("${ADMIN_PASSWORD:123456}") String adminPassword) {
+    CommandLineRunner init(
+            RoleRepository roleRepository,
+            UserRepository userRepository,
+            PasswordEncoder passwordEncoder
+    ) {
         return args -> {
-            Role userRole = roles.findByNameIgnoreCase("USER")
-                    .orElseGet(() -> roles.save(new Role("USER")));
-            Role adminRole = roles.findByNameIgnoreCase("ADMIN")
-                    .orElseGet(() -> roles.save(new Role("ADMIN")));
+            Role userRole = roleRepository
+                    .findByName("ROLE_USER")
+                    .orElseGet(() -> roleRepository.save(
+                            Role.builder()
+                                    .name("ROLE_USER")
+                                    .build()
+                    ));
 
-            if (!users.existsByEmailIgnoreCase(adminEmail)) {
-                User admin = new User();
-                admin.setEmail(adminEmail.toLowerCase());
-                admin.setFullName("Do Thanh Thanh Tai");
-                admin.setPassword(encoder.encode(adminPassword));
-                admin.setRole(adminRole);
-                admin.setEnabled(true);
-                users.save(admin);
+            Role adminRole = roleRepository
+                    .findByName("ROLE_ADMIN")
+                    .orElseGet(() -> roleRepository.save(
+                            Role.builder()
+                                    .name("ROLE_ADMIN")
+                                    .build()
+                    ));
+
+            if (userRepository.findByUsername("user01").isEmpty() && userRepository.findByEmail("user01@gmail.com").isEmpty()) {
+                User user = User.builder()
+                        .username("user01")
+                        .email("user01@gmail.com")
+                        .password(passwordEncoder.encode("123456"))
+                        .fullName("Nguyễn Hữu Trung")
+                        .images("/images/user.png")
+                        .role(userRole)
+                        .enabled(true)
+                        .build();
+                userRepository.save(user);
             }
 
-            String defaultUserEmail = "user01@gmail.com";
-            if (!users.existsByEmailIgnoreCase(defaultUserEmail)) {
-                User normalUser = new User();
-                normalUser.setEmail(defaultUserEmail.toLowerCase());
-                normalUser.setFullName("Nguyễn Hữu Trung");
-                normalUser.setPassword(encoder.encode("123456"));
-                normalUser.setRole(userRole);
-                normalUser.setEnabled(true);
-                users.save(normalUser);
+            if (userRepository.findByUsername("thanhtai").isEmpty() && userRepository.findByEmail("thanhtai@hcmute.edu.vn").isEmpty()) {
+                User admin = User.builder()
+                        .username("thanhtai")
+                        .email("thanhtai@hcmute.edu.vn")
+                        .password(passwordEncoder.encode("123456"))
+                        .fullName("Đỗ Thành Thanh Tài")
+                        .images("/images/user.png")
+                        .role(adminRole)
+                        .enabled(true)
+                        .build();
+                userRepository.save(admin);
             }
         };
     }

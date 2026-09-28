@@ -1,16 +1,20 @@
 <!DOCTYPE html>
-<html lang="vi" xmlns:th="http://www.thymeleaf.org">
-<head th:replace="~{layouts/layout :: head('Trang chủ')}"></head>
+<html lang="vi"
+      xmlns:th="http://www.thymeleaf.org"
+      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      layout:decorate="~{layouts/layout}">
+<head>
+    <title>Trang chủ</title>
+</head>
 <body>
-<header th:replace="~{fragments/header :: header}"></header>
-<main class="container">
-    <div class="page-title">
-        <h1>Trang Chủ (Home)</h1>
-    </div>
-    <div class="panel" style="margin-top: 20px;">
-        <h3>Hệ thống Spring Boot + Spring Security</h3>
-        <p>Ví dụ 1: Đăng nhập thành công với Spring Security, hiển thị thông tin người dùng ở <code>header.html</code>.</p>
-        <p>Layout chuẩn Thymeleaf sử dụng Fragment (không dùng Dialect layout).</p>
+<main layout:fragment="content" class="container">
+    <h1>Trang chủ UTEShop</h1>
+    <div class="panel">
+        <p>
+            Xin chào
+            <strong th:text="${#authentication.principal.fullName}">User</strong>
+        </p>
+        <p>Chúc mừng bạn đã hoàn thành bài tập Custom Login (đăng nhập bằng username hoặc email, hiển thị fullname & avatar trên header)!</p>
     </div>
 </main>
 </body>

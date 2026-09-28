@@ -1,20 +1,16 @@
 package vn.iotstar.dto;
 
-import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
-import jakarta.validation.constraints.Size;
 import lombok.*;
 
-@Data
+@Getter
+@Setter
 @NoArgsConstructor
 @AllArgsConstructor
-@Builder
 public class LoginDTO {
-    @Email
-    @NotBlank
-    private String email;
+    @NotBlank(message = "Username hoặc email không được để trống")
+    private String login;
 
-    @NotBlank
-    @Size(min = 6, max = 100)
+    @NotBlank(message = "Password không được để trống")
     private String password;
 }
