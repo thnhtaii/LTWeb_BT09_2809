@@ -16,7 +16,7 @@ public class DataInitializer {
     @Bean
     CommandLineRunner initData(RoleRepository roles, UserRepository users,
                                PasswordEncoder encoder,
-                               @Value("${ADMIN_EMAIL:trungnh@hcmute.edu.vn}") String adminEmail,
+                               @Value("${ADMIN_EMAIL:thanhtai@hcmute.edu.vn}") String adminEmail,
                                @Value("${ADMIN_PASSWORD:123456}") String adminPassword) {
         return args -> {
             Role userRole = roles.findByNameIgnoreCase("USER")
@@ -27,7 +27,7 @@ public class DataInitializer {
             if (!users.existsByEmailIgnoreCase(adminEmail)) {
                 User admin = new User();
                 admin.setEmail(adminEmail.toLowerCase());
-                admin.setFullName("System Administrator");
+                admin.setFullName("Do Thanh Thanh Tai");
                 admin.setPassword(encoder.encode(adminPassword));
                 admin.setRole(adminRole);
                 admin.setEnabled(true);

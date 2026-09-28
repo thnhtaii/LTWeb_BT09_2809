@@ -8,7 +8,7 @@
 
 ### Tài khoản mặc định:
 1. **Admin**:
-   - Email: `trungnh@hcmute.edu.vn`
+   - Email: `thanhtai@hcmute.edu.vn`
    - Password: `123456`
    - Role: `ADMIN`
 2. **User**:
