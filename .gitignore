@@ -1,0 +1,9 @@
+target/
+*.class
+*.log
+.DS_Store
+Thumbs.db
+
+# Environment variables
+.env
+.env.properties
