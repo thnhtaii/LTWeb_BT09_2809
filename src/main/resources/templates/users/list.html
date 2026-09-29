@@ -6,6 +6,7 @@
 <main>
 <h1>Quản lý Users</h1>
 <div th:if="${success}" class="alert success" th:text="${success}"></div>
+<div th:if="${error}" class="alert error" th:text="${error}"></div>
 <div class="toolbar">
 <form th:action="@{/users}" method="get">
 <input name="keyword" th:value="${keyword}" placeholder="Username, email, họ tên...">
@@ -38,8 +39,8 @@
 <td th:text="${u.productCount}"></td>
 <td class="actions">
 <a th:href="@{/users/edit/{id}(id=${u.id})}">Edit</a>
-<form th:action="@{/users/delete/{id}(id=${u.id})}" method="post" onsubmit="return confirm('Xóa user này?')">
-<button class="danger-link">Delete</button>
+<form th:id="'delete-user-form-' + ${u.id}" th:action="@{/users/delete/{id}(id=${u.id})}" method="post">
+<button type="button" class="danger-link" th:data-id="${u.id}" th:data-name="${u.username}" onclick="openDeleteUserModal(this.getAttribute('data-id'), this.getAttribute('data-name'))">Delete</button>
 </form>
 </td>
 </tr>
@@ -55,6 +56,53 @@
 </span>
 <a th:if="${users.hasNext()}" th:href="@{/users(page=${users.number + 1},size=${size},keyword=${keyword})}">»</a>
 </div>
+
+<!-- Modal xác nhận xóa User trên màn hình -->
+<div id="deleteUserModal" class="modal-backdrop">
+    <div class="modal-box">
+        <div class="modal-icon">⚠️</div>
+        <div class="modal-title">Xác nhận xóa người dùng</div>
+        <div class="modal-desc" id="modalUserMessage">Bạn có chắc chắn muốn xóa user này không?</div>
+        <div class="modal-buttons">
+            <button type="button" class="modal-btn modal-btn-cancel" onclick="closeDeleteUserModal()">Hủy</button>
+            <button type="button" class="modal-btn modal-btn-confirm" onclick="submitDeleteUser()">Xác nhận xóa</button>
+        </div>
+    </div>
+</div>
+
+<script>
+let currentDeleteUserId = null;
+function openDeleteUserModal(id, username) {
+    currentDeleteUserId = id;
+    if (username) {
+        document.getElementById('modalUserMessage').innerText = 'Bạn có chắc chắn muốn xóa tài khoản "' + username + '" không?';
+    } else {
+        document.getElementById('modalUserMessage').innerText = 'Bạn có chắc chắn muốn xóa user này không?';
+    }
+    document.getElementById('deleteUserModal').classList.add('show');
+}
+function closeDeleteUserModal() {
+    document.getElementById('deleteUserModal').classList.remove('show');
+    currentDeleteUserId = null;
+}
+function submitDeleteUser() {
+    if (currentDeleteUserId) {
+        document.getElementById('delete-user-form-' + currentDeleteUserId).submit();
+    }
+}
+window.addEventListener('click', function(e) {
+    const modal = document.getElementById('deleteUserModal');
+    if (e.target === modal) {
+        closeDeleteUserModal();
+    }
+});
+window.addEventListener('keydown', function(e) {
+    if (e.key === 'Escape') {
+        closeDeleteUserModal();
+    }
+});
+</script>
+
 </main>
 </div>
 </body>

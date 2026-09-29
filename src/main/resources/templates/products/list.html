@@ -6,6 +6,7 @@
 <main>
 <h1>Quản lý Products</h1>
 <div th:if="${success}" class="alert success" th:text="${success}"></div>
+<div th:if="${error}" class="alert error" th:text="${error}"></div>
 <div class="toolbar">
 <form th:action="@{/products}" method="get">
 <input name="keyword" th:value="${keyword}" placeholder="Tên sản phẩm, mô tả...">
@@ -33,12 +34,12 @@
     <span th:unless="${p.imageUrl != null and !#strings.isEmpty(p.imageUrl)}">No image</span>
 </td>
 <td th:text="${p.name}"></td>
-<td th:text="${#numbers.formatDecimal(p.price, 0, 'COMMA', 2, 'POINT')}"></td>
+<td th:text="${p.price != null ? #numbers.formatDecimal(p.price, 1, 'COMMA', 0, 'POINT') : '0'}"></td>
 <td th:text="${p.username}"></td>
 <td class="actions">
 <a th:href="@{/products/edit/{id}(id=${p.id})}">Edit</a>
-<form th:action="@{/products/delete/{id}(id=${p.id})}" method="post" onsubmit="return confirm('Xóa product này?')">
-<button class="danger-link">Delete</button>
+<form th:id="'delete-form-' + ${p.id}" th:action="@{/products/delete/{id}(id=${p.id})}" method="post">
+<button type="button" class="danger-link" th:data-id="${p.id}" th:data-name="${p.name}" onclick="openDeleteModal(this.getAttribute('data-id'), this.getAttribute('data-name'))">Delete</button>
 </form>
 </td>
 </tr>
@@ -54,6 +55,53 @@
 </span>
 <a th:if="${products.hasNext()}" th:href="@{/products(page=${products.number + 1},size=${size},keyword=${keyword})}">»</a>
 </div>
+
+<!-- Modal xác nhận xóa trên màn hình -->
+<div id="deleteModal" class="modal-backdrop">
+    <div class="modal-box">
+        <div class="modal-icon">⚠️</div>
+        <div class="modal-title">Xác nhận xóa</div>
+        <div class="modal-desc" id="modalMessage">Bạn có chắc chắn muốn xóa sản phẩm này không? Hành động này không thể hoàn tác.</div>
+        <div class="modal-buttons">
+            <button type="button" class="modal-btn modal-btn-cancel" onclick="closeDeleteModal()">Hủy</button>
+            <button type="button" class="modal-btn modal-btn-confirm" onclick="submitDelete()">Xác nhận xóa</button>
+        </div>
+    </div>
+</div>
+
+<script>
+let currentDeleteId = null;
+function openDeleteModal(id, name) {
+    currentDeleteId = id;
+    if (name) {
+        document.getElementById('modalMessage').innerText = 'Bạn có chắc chắn muốn xóa sản phẩm "' + name + '" không?';
+    } else {
+        document.getElementById('modalMessage').innerText = 'Bạn có chắc chắn muốn xóa sản phẩm này không?';
+    }
+    document.getElementById('deleteModal').classList.add('show');
+}
+function closeDeleteModal() {
+    document.getElementById('deleteModal').classList.remove('show');
+    currentDeleteId = null;
+}
+function submitDelete() {
+    if (currentDeleteId) {
+        document.getElementById('delete-form-' + currentDeleteId).submit();
+    }
+}
+window.addEventListener('click', function(e) {
+    const modal = document.getElementById('deleteModal');
+    if (e.target === modal) {
+        closeDeleteModal();
+    }
+});
+window.addEventListener('keydown', function(e) {
+    if (e.key === 'Escape') {
+        closeDeleteModal();
+    }
+});
+</script>
+
 </main>
 </div>
 </body>
