@@ -1,9 +1,23 @@
 package vn.iotstar.repository;
 
-import org.springframework.data.jpa.repository.JpaRepository;
-import org.springframework.stereotype.Repository;
+import org.springframework.data.domain.*;
+import org.springframework.data.jpa.repository.*;
+import org.springframework.data.repository.query.Param;
 import vn.iotstar.entity.Product;
+import java.util.Optional;
 
-@Repository
 public interface ProductRepository extends JpaRepository<Product, Long> {
+    @Query("""
+        select p from Product p join fetch p.user u
+        where lower(p.name) like lower(concat('%', :keyword, '%'))
+        or lower(coalesce(p.description, '')) like lower(concat('%', :keyword, '%'))
+        """)
+    Page<Product> search(@Param("keyword") String keyword, Pageable pageable);
+
+    @Query("select p from Product p join fetch p.user where p.id = :id")
+    Optional<Product> findByIdWithUser(@Param("id") Long id);
+
+    Page<Product> findByUserId(Long userId, Pageable pageable);
+
+    long countByUserId(Long userId);
 }

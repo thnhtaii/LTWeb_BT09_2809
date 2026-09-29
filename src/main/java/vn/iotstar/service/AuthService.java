@@ -1,7 +1,11 @@
 package vn.iotstar.service;
 
-import vn.iotstar.dto.UserDTO;
+import vn.iotstar.dto.RegisterDTO;
 
 public interface AuthService {
-    UserDTO register(UserDTO userDto, String password);
+    void register(RegisterDTO dto);
+    boolean verifyRegister(String email, String otp);
+    void forgotPassword(String email);
+    boolean verifyResetOtp(String email, String otp);
+    void resetPassword(String email, String password);
 }

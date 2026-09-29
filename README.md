@@ -1,152 +1,228 @@
-# BÁO CÁO BÀI TẬP 09: SPRING BOOT 4 + SPRING SECURITY + MAPSTRUCT + THYMELEAF
+# BÁO CÁO BÀI TẬP: SPRING BOOT 4 + SPRING SECURITY + MAPSTRUCT + THYMELEAF + CLOUDINARY
 
+## 1. Mục tiêu và Chức năng hoàn thành
 
----
+Dự án triển khai hoàn chỉnh theo toàn bộ hướng dẫn trong tài liệu **`HƯỚNG DẪN SPRING BOOT + SECURITY`**:
 
-## 1. Yêu cầu và Kết quả hoàn thành
+### A. Authentication & Security
+- [x] **Đăng ký (Register)**: Người dùng nhập thông tin đăng ký -> lưu tài khoản với trạng thái `enabled = false` -> mã hóa OTP và gửi email xác nhận.
+- [x] **Gửi & Xác nhận OTP (Verify OTP)**: Tạo mã OTP ngẫu nhiên 6 số, mã hóa qua `BCryptPasswordEncoder` lưu vào bảng `otp_tokens`, thời hạn 5 phút, giới hạn 5 lần thử -> kích hoạt tài khoản `enabled = true`.
+- [x] **Gửi lại OTP (Resend OTP)**: Cho phép tạo mới và gửi lại mã xác thực nếu chưa nhận được hoặc hết hạn.
+- [x] **Đăng nhập (Login)**: Xác thực tài khoản với Spring Security qua Session, mã hóa mật khẩu bằng `BCrypt`.
+- [x] **Đăng xuất (Logout)**: Hủy phiên (Invalidate Session), xóa cookie `JSESSIONID`.
+- [x] **Quên mật khẩu (Forgot Password)**: Nhập email -> gửi OTP xác thực.
+- [x] **Xác thực OTP & Đổi mật khẩu (Reset Password)**: Kiểm tra mã OTP hợp lệ và cập nhật mật khẩu mới.
+- [x] **Phân quyền & Kiểm soát truy cập**:
+  - Công khai: `/`, `/login`, `/register`, `/verify-otp`, `/forgot-password`, `/reset-password`, `/resend-register-otp`, `/css/**`, `/js/**`.
+  - Quyền Admin: `/users/**` (chỉ role `ROLE_ADMIN` mới có quyền truy cập).
+  - Quyền Đã đăng nhập: `/products/**` (yêu cầu người dùng đã đăng nhập).
 
-| STT | Yêu cầu bài tập | Chi tiết hiện thực |
-| :-: | :--- | :--- |
-| **01** | **Bảng User và Role** | Thiết kế Entity `User` và `Role` chuẩn quan hệ nhiều-một (`@ManyToOne`), tự động ánh xạ bảng trong SQL Server qua Spring Data JPA. |
-| **02** | **Chức năng Login** | Cấu hình form login bằng Spring Security 6/7, tích hợp xác thực và mã hóa mật khẩu an toàn với `BCryptPasswordEncoder`. |
-| **03** | **Custom Login (Username hoặc Email)** | Cho phép người dùng đăng nhập linh hoạt bằng **Username** hoặc **Email**; hệ thống tự động tìm kiếm qua `findByUsernameOrEmail(login, login)`. |
-| **04** | **Hiển thị thông tin User trên Header** | `header.html` hiển thị đầy đủ: **Ảnh đại diện** (Avatar), **Họ và tên** (`fullName`), **Username**, **Email**, **Vai trò** (`role`), cùng nút **Đăng xuất**. |
-| **05** | **Sử dụng MapStruct** | Khai báo `UserMapper` tự động chuyển đổi giữa `User` (Entity) và `UserDTO` với cấu hình `mapstruct-processor` 1.6.3 trong Maven. |
-| **06** | **Thymeleaf & Thymeleaf Layout Dialect** | Kế thừa layout chuẩn qua `thymeleaf-layout-dialect` bằng thuộc tính `layout:decorate="~{layouts/layout}"`. |
-| **07** | **Bảo mật và Phân quyền (Authorization)** | Phân quyền chi tiết: tài nguyên tĩnh và trang login công khai; `/admin/**` yêu cầu role `ADMIN`; trang người dùng yêu cầu xác thực (`authenticated`). |
+### B. Quản lý Người dùng (User Management)
+- [x] **CRUD User**: Thêm mới, cập nhật thông tin (Họ tên, Email, Role, Enabled), Xóa người dùng.
+- [x] **Tìm kiếm & Phân trang**: Tìm kiếm theo Username, Email, Họ tên kết hợp phân trang dữ liệu.
+- [x] **Thống kê**: Đếm tổng số User trong hệ thống và đếm số Product thuộc về từng User.
+
+### C. Quản lý Sản phẩm (Product Management)
+- [x] **CRUD Product**: Thêm sản phẩm kèm tải ảnh, sửa thông tin, xóa sản phẩm (tự động xóa ảnh cũ trên Cloudinary).
+- [x] **Tìm kiếm & Phân trang**: Tìm kiếm theo tên sản phẩm, mô tả và phân trang dữ liệu.
+- [x] **Upload ảnh Cloudinary**: Tích hợp Cloudinary SDK để tải ảnh sản phẩm lên đám mây và lưu đường dẫn ảnh kèm publicId.
+- [x] **Quan hệ User - Product**: 1 User sở hữu nhiều Product (`@ManyToOne`, `@OneToMany`).
+
+### D. MapStruct & Kiến trúc
+- [x] **UserMapper**: Chuyển đổi giữa `User` (Entity) và `UserDTO`.
+- [x] **ProductMapper**: Chuyển đổi giữa `Product` (Entity) và `ProductDTO`.
+- [x] **Mô hình kiến trúc**: MVC + Service Layer + Repository Layer (Spring Data JPA) + DTO/Mapper.
 
 ---
 
 ## 2. Công nghệ sử dụng
-- **Java**: 21 (hoặc 26)
-- **Spring Boot**: 4.1.1
-- **Spring Security**: 6.x / 7.x
-- **Spring Data JPA & Hibernate**: Quản lý Entity và CSDL
-- **Microsoft SQL Server**: Lưu trữ dữ liệu quan hệ (`mssql-jdbc`)
-- **MapStruct**: 1.6.3 (Ánh xạ DTO - Entity)
-- **Thymeleaf**: Template engine kết hợp `thymeleaf-layout-dialect` và `thymeleaf-extras-springsecurity6`
-- **Lombok**: Giảm thiểu boilerplate code
-- **CSS**: Vanilla CSS hiện đại, responsive
+
+| Thành phần | Công nghệ |
+| :--- | :--- |
+| **Backend** | Spring Boot 4.1.1 |
+| **Security** | Spring Security 6.x / 7.x |
+| **Java** | JDK 21 / JDK 26 |
+| **Database** | Microsoft SQL Server |
+| **ORM** | Spring Data JPA / Hibernate |
+| **View** | Thymeleaf + Thymeleaf Layout Dialect + Thymeleaf Extras Spring Security |
+| **Mapper** | MapStruct 1.6.3 + MapStruct Processor |
+| **Email** | Spring Mail (Gmail SMTP) |
+| **Image Storage** | Cloudinary (`cloudinary-http5:2.0.0`) |
+| **Validation** | Jakarta Validation |
+| **Build Tool** | Maven 3.9+ |
 
 ---
 
-## 3. Cấu trúc dự án
+## 3. Cấu trúc thư mục dự án
 
 ```text
 BT09_2809/
-├── .env                                       # Cấu hình biến môi trường kết nối CSDL và Server
-├── .gitignore                                 # Loại trừ target/, .env và các file tạm
-├── pom.xml                                    # Khai báo dependency và compiler plugin
-├── README.md                                  # Hướng dẫn chi tiết dự án
-└── src/
-    └── main/
-        ├── java/
-        │   └── vn/iotstar/
-        │       ├── Bt092809Application.java  # Lớp khởi chạy Spring Boot
-        │       ├── config/
-        │       │   ├── DataInitializer.java   # Khởi tạo Role (ROLE_ADMIN, ROLE_USER) và User mẫu
-        │       │   ├── EncodingConfig.java    # Bộ lọc ký tự tiếng Việt UTF-8
-        │       │   └── SecurityConfig.java    # Cấu hình SecurityFilterChain, Provider, PasswordEncoder
-        │       ├── controller/
-        │       │   ├── AuthController.java    # Điều hướng /login, /access-denied
-        │       │   └── HomeController.java    # Điều hướng trang chủ /
-        │       ├── dto/
-        │       │   ├── LoginDTO.java          # DTO nhận dữ liệu đăng nhập
-        │       │   └── UserDTO.java           # DTO trao đổi thông tin người dùng
-        │       ├── entity/
-        │       │   ├── Role.java              # Entity bảng roles
-        │       │   ├── User.java              # Entity bảng users
-        │       │   └── Product.java           # Entity bảng products
-        │       ├── mapper/
-        │       │   └── UserMapper.java        # Interface MapStruct chuyển đổi User <-> UserDTO
-        │       ├── repository/
-        │       │   ├── RoleRepository.java    # Truy vấn dữ liệu Role
-        │       │   └── UserRepository.java    # Truy vấn dữ liệu User (findByUsernameOrEmail)
-        │       ├── security/
-        │       │   ├── CustomUserDetails.java # Đối tượng Principal chứa thông tin mở rộng của User
-        │       │   └── CustomUserDetailsService.java # Nạp thông tin xác thực từ DB
-        │       └── service/
-        │           ├── AuthService.java       # Interface nghiệp vụ đăng ký/xác thực
-        │           └── impl/
-        │               └── AuthServiceImpl.java
-        └── resources/
-            ├── application.properties         # Cấu hình Spring Boot và import .env
-            ├── static/
-            │   ├── css/
-            │   │   └── app.css                # Giao diện responsive cho UTEShop
-            │   └── images/
-            │       ├── avatar-default.png     # Ảnh đại diện mặc định
-            │       └── user.png               # Ảnh người dùng
-            └── templates/
-                ├── auth/
-                │   ├── login.html             # Trang đăng nhập
-                │   └── 403.html               # Trang báo lỗi 403 (Truy cập bị từ chối)
-                ├── fragments/
-                │   └── header.html            # Fragment thanh điều hướng hiển thị Avatar, Info, Logout
-                ├── layouts/
-                │   └── layout.html            # Layout chung sử dụng Thymeleaf Layout Dialect
-                └── home.html                  # Trang chủ kế thừa layout:decorate
+├── .env                                       # Cấu hình biến môi trường kết nối DB, Mail, Cloudinary
+├── pom.xml                                    # Khai báo dependency và plugin MapStruct
+├── README.md                                  # Tài liệu hướng dẫn
+└── src/main/
+    ├── java/vn/iotstar/
+    │   ├── Bt092809Application.java          # Spring Boot main class
+    │   ├── config/
+    │   │   ├── CloudinaryConfig.java          # Cấu hình Bean Cloudinary
+    │   │   ├── DataInitializer.java           # Tự động nạp Role và tài khoản khởi tạo
+    │   │   ├── EncodingConfig.java            # Cấu hình CharacterEncodingFilter UTF-8
+    │   │   └── SecurityConfig.java            # Cấu hình SecurityFilterChain, FormLogin, Session
+    │   ├── controller/
+    │   │   ├── AuthController.java            # Điều hướng Login, Register, OTP, Forgot Password
+    │   │   ├── ErrorController.java           # Xử lý trang lỗi
+    │   │   ├── HomeController.java            # Trang chủ và thống kê Dashboard
+    │   │   ├── ProductController.java         # Quản lý CRUD Sản phẩm
+    │   │   └── UserController.java            # Quản lý CRUD Người dùng (Admin)
+    │   ├── dto/
+    │   │   ├── ForgotPasswordDTO.java
+    │   │   ├── LoginDTO.java
+    │   │   ├── ProductDTO.java
+    │   │   ├── RegisterDTO.java
+    │   │   ├── ResetPasswordDTO.java
+    │   │   ├── UserDTO.java
+    │   │   └── VerifyOtpDTO.java
+    │   ├── entity/
+    │   │   ├── OtpToken.java                  # Entity bảng otp_tokens
+    │   │   ├── Product.java                   # Entity bảng products
+    │   │   ├── Role.java                      # Entity bảng roles
+    │   │   └── User.java                      # Entity bảng users
+    │   ├── mapper/
+    │   │   ├── ProductMapper.java             # MapStruct Product <-> ProductDTO
+    │   │   └── UserMapper.java                # MapStruct User <-> UserDTO
+    │   ├── repository/
+    │   │   ├── OtpTokenRepository.java
+    │   │   ├── ProductRepository.java
+    │   │   ├── RoleRepository.java
+    │   │   └── UserRepository.java
+    │   ├── security/
+    │   │   ├── CustomUserDetails.java         # Triển khai UserDetails
+    │   │   └── CustomUserDetailsService.java  # Tải User từ CSDL
+    │   └── service/
+    │       ├── AuthService.java
+    │       ├── CloudinaryService.java
+    │       ├── CloudinaryUploadResult.java
+    │       ├── EmailService.java
+    │       ├── OtpService.java
+    │       ├── ProductService.java
+    │       ├── UserService.java
+    │       └── impl/
+    │           ├── AuthServiceImpl.java
+    │           ├── CloudinaryServiceImpl.java
+    │           ├── EmailServiceImpl.java
+    │           ├── OtpServiceImpl.java
+    │           ├── ProductServiceImpl.java
+    │           └── UserServiceImpl.java
+    └── resources/
+        ├── application.properties
+        ├── static/
+        │   └── css/
+        │       └── app.css                    # CSS giao diện ứng dụng
+        └── templates/
+            ├── auth/
+            │   ├── forgot-password.html       # Giao diện quên mật khẩu
+            │   ├── login.html                 # Giao diện đăng nhập
+            │   ├── register.html              # Giao diện đăng ký
+            │   ├── reset-password.html        # Giao diện đặt lại mật khẩu với OTP
+            │   └── verify-otp.html            # Giao diện xác thực OTP đăng ký
+            ├── fragments/
+            │   ├── footer.html
+            │   └── header.html
+            ├── layouts/
+            │   └── layout.html                # Layout dùng chung cho các view
+            ├── products/
+            │   ├── form.html                  # Form thêm/sửa sản phẩm kèm tải ảnh
+            │   └── list.html                  # Danh sách sản phẩm, tìm kiếm, phân trang
+            ├── users/
+            │   ├── form.html                  # Form thêm/sửa người dùng
+            │   └── list.html                  # Danh sách người dùng, tìm kiếm, phân trang
+            ├── error.html
+            └── home.html
 ```
 
 ---
 
-## 4. Cấu hình Cơ sở dữ liệu (Database)
+## 4. Cấu hình CSDL và Môi trường (`.env` & `application.properties`)
 
-Ứng dụng kết nối tới Microsoft SQL Server (database `webst4`):
-- **File `.env`**:
-  ```properties
-  DB_URL=jdbc:sqlserver://localhost:64078;databaseName=webst4;encrypt=false;trustServerCertificate=true;sslProtocol=TLSv1.2;characterEncoding=UTF-8
-  DB_USERNAME=sa
-  DB_PASSWORD=13234
-  DDL_AUTO=update
-  SHOW_SQL=true
-  SERVER_PORT=8080
-  ```
-- Khi ứng dụng khởi động, Hibernate sẽ tự động cập nhật bảng `users` và `roles` trong CSDL.
+### File `.env` mẫu:
+```properties
+# ===============================
+# DATABASE
+# ===============================
+DB_URL=jdbc:sqlserver://localhost:1433;databaseName=webst3;encrypt=false;trustServerCertificate=true;sslProtocol=TLSv1.2;characterEncoding=UTF-8
+DB_USERNAME=sa
+DB_PASSWORD=123456
+
+# ===============================
+# JPA
+# ===============================
+DDL_AUTO=update
+SHOW_SQL=true
+
+# ===============================
+# SERVER
+# ===============================
+SERVER_PORT=8080
+
+# ===============================
+# SMTP
+# ===============================
+MAIL_HOST=smtp.gmail.com
+MAIL_PORT=587
+MAIL_USERNAME=your-email@gmail.com
+MAIL_PASSWORD=your-app-password
+
+# ===============================
+# CLOUDINARY
+# ===============================
+CLOUDINARY_CLOUD_NAME=your_cloud_name
+CLOUDINARY_API_KEY=your_api_key
+CLOUDINARY_API_SECRET=your_api_secret
+```
 
 ---
 
-## 5. Danh sách tài khoản kiểm thử đã tạo sẵn
+## 5. Hướng dẫn chạy và Kiểm thử ứng dụng
 
-Cả 2 tài khoản dưới đây đều có thể đăng nhập bằng **Username** hoặc **Email**:
+### Bước 1: Khởi động SQL Server & tạo Database
+Khởi động dịch vụ SQL Server và tạo cơ sở dữ liệu `webst3` (hoặc tên theo cấu hình `.env`):
+```sql
+CREATE DATABASE webst3;
+```
 
-| Vai trò (Role) | Username | Email | Mật khẩu | Họ và tên (`fullName`) | Ảnh đại diện |
-| :--- | :--- | :--- | :--- | :--- | :--- |
-| **ROLE_ADMIN** | `thanhtai` | `thanhtai@hcmute.edu.vn` | `123456` | Đỗ Thành Thanh Tài | `/images/user.png` |
-| **ROLE_USER** | `user01` | `user01@gmail.com` | `123456` | Nguyễn Hữu Trung | `/images/user.png` |
-
----
-
-## 6. Hướng dẫn chạy và kiểm thử
-
-### Bước 1: Khởi chạy dự án
-Chạy bằng Maven qua terminal:
+### Bước 2: Biên dịch và chạy ứng dụng
+Mở terminal tại thư mục gốc của dự án:
 ```bash
+mvn clean compile
 mvn spring-boot:run
 ```
-Hoặc mở trong **Spring Tool Suite (STS) / Eclipse**: Chuột phải vào project `BT09_2809` -> chọn `Run As` -> `Spring Boot App`.
+Hoặc trong IDE (Eclipse / STS / VSCode): Chuột phải vào project -> `Run As` -> `Spring Boot App`.
 
-### Bước 2: Kiểm thử đăng nhập
-Truy cập: **`http://localhost:8080/login`**
+### Bước 3: Kiểm thử các chức năng
 
-1. **Trường hợp 1 - Đăng nhập Admin bằng Username**:
-   - Username hoặc Email: `thanhtai`
-   - Password: `123456`
-   - *Kết quả*: Đăng nhập thành công, chuyển hướng về trang chủ `/`. Thanh `header.html` hiển thị ảnh đại diện, `Đỗ Thành Thanh Tài`, `(thanhtai)`, `thanhtai@hcmute.edu.vn`, vai trò `ROLE_ADMIN` và nút Đăng xuất.
+1. **Khởi tạo dữ liệu**: Khi chạy, ứng dụng tự động kiểm tra và tạo 2 Role (`ROLE_USER`, `ROLE_ADMIN`) cùng các tài khoản mẫu:
+   - **Admin**: `admin` / mật khẩu: `123456`
+   - **User**: `user01` / mật khẩu: `123456`
 
-2. **Trường hợp 2 - Đăng nhập Admin bằng Email**:
-   - Username hoặc Email: `thanhtai@hcmute.edu.vn`
-   - Password: `123456`
-   - *Kết quả*: Đăng nhập thành công với đầy đủ thông tin trên header.
+2. **Quy trình Đăng ký & Kích hoạt tài khoản**:
+   - Truy cập `http://localhost:8080/register`.
+   - Điền thông tin và bấm **Đăng ký & nhận OTP**.
+   - Kiểm tra hòm thư email nhận mã OTP 6 số.
+   - Nhập OTP tại trang `http://localhost:8080/verify-otp` để kích hoạt tài khoản thành công.
+   - Nếu chưa nhận được mã, bấm **Gửi lại OTP**.
 
-3. **Trường hợp 3 - Đăng nhập User thông thường bằng Username hoặc Email**:
-   - Nhập `user01` hoặc `user01@gmail.com` với password `123456`.
-   - *Kết quả*: Đăng nhập thành công, hiển thị vai trò `ROLE_USER` trên header.
+3. **Quy trình Quên mật khẩu**:
+   - Truy cập `http://localhost:8080/forgot-password`.
+   - Nhập email đăng ký và bấm **Gửi OTP**.
+   - Chuyển sang `http://localhost:8080/reset-password`, nhập mã OTP cùng mật khẩu mới và xác nhận.
 
-4. **Trường hợp 4 - Đăng nhập sai thông tin**:
-   - Nhập sai mật khẩu hoặc tài khoản không tồn tại.
-   - *Kết quả*: Trang web thông báo lỗi `Username/email hoặc password không đúng`.
+4. **Quản lý Sản phẩm (Products)**:
+   - Đăng nhập vào hệ thống.
+   - Truy cập `/products` để xem danh sách, tìm kiếm sản phẩm theo từ khóa và phân trang.
+   - Bấm **+ Thêm Product** để thêm sản phẩm và chọn ảnh upload trực tiếp lên Cloudinary.
+   - Sửa hoặc Xóa sản phẩm.
 
-5. **Trường hợp 5 - Đăng xuất**:
-   - Bấm nút **Đăng xuất** trên thanh Header.
-   - *Kết quả*: Phiên làm việc (Session) bị hủy, cookie `JSESSIONID` bị xóa, chuyển hướng về trang login kèm thông báo `Bạn đã đăng xuất`.
+5. **Quản lý Người dùng (Users - Dành cho Admin)**:
+   - Đăng nhập bằng tài khoản Admin (`admin` / `123456`).
+   - Truy cập `/users` để xem danh sách toàn bộ người dùng, số lượng sản phẩm của từng người dùng.
+   - Tìm kiếm, phân trang, thêm mới user hoặc sửa/xóa user.

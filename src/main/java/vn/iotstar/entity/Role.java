@@ -2,7 +2,6 @@ package vn.iotstar.entity;
 
 import jakarta.persistence.*;
 import lombok.*;
-import java.io.Serializable;
 
 @Entity
 @Table(name = "roles")
@@ -11,17 +10,11 @@ import java.io.Serializable;
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
-public class Role implements Serializable {
-    private static final long serialVersionUID = 1L;
-
+public class Role {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @Column(nullable = false, unique = true, length = 50)
+    @Column(nullable = false, unique = false, length = 30)
     private String name;
-
-    public Role(String name) {
-        this.name = name;
-    }
 }

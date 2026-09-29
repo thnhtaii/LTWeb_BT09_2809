@@ -35,26 +35,32 @@ public class DataInitializer {
                                     .build()
                     ));
 
-            if (userRepository.findByUsername("user01").isEmpty() && userRepository.findByEmail("user01@gmail.com").isEmpty()) {
-                User user = User.builder()
-                        .username("user01")
-                        .email("user01@gmail.com")
-                        .password(passwordEncoder.encode("123456"))
-                        .fullName("Nguyễn Hữu Trung")
-                        .images("/images/user.png")
-                        .role(userRole)
-                        .enabled(true)
-                        .build();
-                userRepository.save(user);
-            }
+            userRepository.findByUsername("user01").ifPresentOrElse(
+                    user -> {
+                        user.setFullName("Đỗ Thanh Thành Tài");
+                        userRepository.save(user);
+                    },
+                    () -> {
+                        if (userRepository.findByEmail("user01@gmail.com").isEmpty()) {
+                            User user = User.builder()
+                                    .username("user01")
+                                    .email("user01@gmail.com")
+                                    .password(passwordEncoder.encode("123456"))
+                                    .fullName("Đỗ Thanh Thành Tài")
+                                    .role(userRole)
+                                    .enabled(true)
+                                    .build();
+                            userRepository.save(user);
+                        }
+                    }
+            );
 
-            if (userRepository.findByUsername("thanhtai").isEmpty() && userRepository.findByEmail("thanhtai@hcmute.edu.vn").isEmpty()) {
+            if (userRepository.findByUsername("admin").isEmpty() && userRepository.findByEmail("admin@gmail.com").isEmpty()) {
                 User admin = User.builder()
-                        .username("thanhtai")
-                        .email("thanhtai@hcmute.edu.vn")
+                        .username("admin")
+                        .email("admin@gmail.com")
                         .password(passwordEncoder.encode("123456"))
-                        .fullName("Đỗ Thành Thanh Tài")
-                        .images("/images/user.png")
+                        .fullName("Administrator")
                         .role(adminRole)
                         .enabled(true)
                         .build();

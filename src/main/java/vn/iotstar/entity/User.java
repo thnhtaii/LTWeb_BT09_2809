@@ -2,26 +2,21 @@ package vn.iotstar.entity;
 
 import jakarta.persistence.*;
 import lombok.*;
-import java.io.Serializable;
+import java.util.ArrayList;
+import java.util.List;
 
 @Entity
-@Table(
-    name = "users",
-    uniqueConstraints = {
-        @UniqueConstraint(name = "uk_users_username", columnNames = "username"),
-        @UniqueConstraint(name = "uk_users_email", columnNames = "email")
-    }
-)
+@Table(name = "users",
+    indexes = {
+        @Index(name = "idx_users_username", columnList = "username"),
+        @Index(name = "idx_users_email", columnList = "email")
+    })
 @Getter
 @Setter
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
-@ToString(exclude = "role")
-@EqualsAndHashCode(exclude = "role")
-public class User implements Serializable {
-    private static final long serialVersionUID = 1L;
-
+public class User {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
@@ -35,17 +30,18 @@ public class User implements Serializable {
     @Column(nullable = false)
     private String password;
 
-    @Column(name = "full_name", length = 150, columnDefinition = "nvarchar(200)")
+    @Column(columnDefinition = "nvarchar(500)")
     private String fullName;
 
-    @Column(length = 500)
-    private String images;
-
-    @Column(nullable = false)
     @Builder.Default
-    private boolean enabled = true;
+    @Column(nullable = false)
+    private boolean enabled = false;
 
-    @ManyToOne(fetch = FetchType.EAGER)
+    @ManyToOne(fetch = FetchType.EAGER, optional = false)
     @JoinColumn(name = "role_id", nullable = false)
     private Role role;
+
+    @Builder.Default
+    @OneToMany(mappedBy = "user", fetch = FetchType.LAZY)
+    private List<Product> products = new ArrayList<>();
 }

@@ -1,20 +1,17 @@
 package vn.iotstar.mapper;
 
-import org.mapstruct.Mapper;
-import org.mapstruct.Mapping;
-import org.mapstruct.ReportingPolicy;
+import org.mapstruct.*;
 import vn.iotstar.dto.UserDTO;
 import vn.iotstar.entity.User;
 
-@Mapper(componentModel = "spring", unmappedTargetPolicy = ReportingPolicy.IGNORE)
+@Mapper(componentModel = "spring",
+    unmappedTargetPolicy = ReportingPolicy.IGNORE)
 public interface UserMapper {
     @Mapping(target = "roleName", source = "role.name")
-    UserDTO toDTO(User user);
-
-    default UserDTO toDto(User user) {
-        return toDTO(user);
-    }
+    UserDTO toDTO(User entity);
 
     @Mapping(target = "role", ignore = true)
-    User toEntity(UserDTO userDTO);
+    @Mapping(target = "products", ignore = true)
+    @Mapping(target = "password", ignore = true)
+    User toEntity(UserDTO dto);
 }
